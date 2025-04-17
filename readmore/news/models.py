@@ -42,6 +42,20 @@ class UserProfile(models.Model):
                 return max(1, i-1)
         return 10
 
+    def save(self, *args, **kwargs):
+        if not self.referral_code:
+            import random, string
+            while True:
+                code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+                if not UserProfile.objects.filter(referral_code=code).exists():
+                    self.referral_code = code
+                    break
+        super().save(*args, **kwargs)
+
+    @property
+    def safe_referral_code(self):
+        return self.referral_code or ''
+
     def __str__(self):
         return self.user.username
 

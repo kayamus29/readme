@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 class EmailOrUsernameAuthenticationForm(AuthenticationForm):
     def clean(self):
@@ -14,3 +14,11 @@ class EmailOrUsernameAuthenticationForm(AuthenticationForm):
                 username = username_or_email
             self.cleaned_data['username'] = username
         return super().clean()
+
+class CustomUserCreationForm(UserCreationForm):
+    referral_code = forms.CharField(
+        max_length=32,
+        required=False,
+        label='Referral Code (optional)',
+        widget=forms.TextInput(attrs={'placeholder': 'Referral Code'})
+    )

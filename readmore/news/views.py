@@ -11,7 +11,7 @@ import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
-from .forms import EmailOrUsernameAuthenticationForm
+from .forms import EmailOrUsernameAuthenticationForm, CustomUserCreationForm
 
 class CustomLoginView(LoginView):
     authentication_form = EmailOrUsernameAuthenticationForm
@@ -25,16 +25,29 @@ def home(request):
     return render(request, 'home.html')
 
 def signup(request):
+    ref_code = request.GET.get('ref', '')
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             # Ensure UserProfile is created
-            UserProfile.objects.get_or_create(user=user)
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            # Handle referral code
+            code = form.cleaned_data.get('referral_code')
+            if code:
+                try:
+                    referrer = UserProfile.objects.get(referral_code=code)
+                    profile.referred_by = code
+                    referrer.referred_count += 1
+                    referrer.add_referral_points(100)  # Award 100 points (customize as needed)
+                    referrer.save()
+                    profile.save()
+                except UserProfile.DoesNotExist:
+                    pass
             login(request, user)
             return redirect('dashboard')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm(initial={'referral_code': ref_code})
     return render(request, 'registration/signup.html', {'form': form})
 
 

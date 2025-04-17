@@ -29,6 +29,16 @@ ReadMore is a Django-based web application that combines news reading, daily/man
 
 ---
 
+## Referral System
+
+- Every user gets a unique referral code (shown on their profile page).
+- Share your referral link (`/signup/?ref=YOURCODE`) to invite others.
+- When someone signs up using your code, you earn **100 points** and your referral count increases.
+- Referral count and rewards are displayed on your profile and dashboard.
+- The signup form auto-fills the referral code if accessed via a referral link.
+
+---
+
 ## Installation & Deployment Guide
 
 ### 1. Requirements
