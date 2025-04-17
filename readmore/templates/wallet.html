@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
+  <h2 class="text-2xl font-bold mb-4 text-blue-700">Wallet</h2>
+  <div class="mb-4">
+    <span class="text-lg font-bold text-blue-700">Coin Balance:</span>
+    <span class="text-2xl font-mono text-yellow-600">{{ user_profile.coin_balance|default:0 }}</span>
+  </div>
+  <button id="withdrawBtn" class="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 mb-4">Withdraw</button>
+
+  <!-- Withdraw Modal -->
+  <div id="withdrawModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" style="display:none;">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative">
+      <button id="closeWithdrawModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700">&times;</button>
+      <h4 class="text-lg font-semibold mb-2 text-purple-700">Withdraw Coins</h4>
+      <form id="withdraw-coins-form" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="withdraw_coins" value="1">
+        <label class="block mb-2">Amount</label>
+        <input type="number" min="30" max="{{ user_profile.coin_balance }}" name="withdraw_amount" id="withdraw_amount" class="w-full border rounded px-3 py-2 mb-2" placeholder="Enter amount (min 30)" required>
+        <div class="text-xs text-gray-500 mb-2">Minimum withdrawal: 30 coins</div>
+        <button type="submit" class="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700">Request Withdrawal</button>
+      </form>
+    </div>
+  </div>
+
+  {% if withdraw_success %}
+    <div class="bg-blue-100 text-blue-700 px-4 py-2 rounded mb-2">Your withdrawal request is processing. The admin will approve it soon.</div>
+  {% endif %}
+  {% if withdraw_error %}
+    <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-2">{{ withdraw_error }}</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <label class="block mb-2 font-semibold">Wallet Address</label>
+    <input type="text" name="wallet_address" value="{{ user_profile.wallet_address|default:'' }}" class="w-full border rounded px-3 py-2 mb-4" required>
+    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">Save</button>
+  </form>
+  <p class="mt-4">Current Wallet: <span class="font-mono">{{ user_profile.wallet_address|default:'Not connected' }}</span></p>
+  <button id="connectWallet" class="mt-4 w-full bg-yellow-400 text-black py-2 px-4 rounded hover:bg-yellow-500">Connect MetaMask</button>
+
+  <hr class="my-6">
+  <hr class="my-6">
+  <h3 class="text-xl font-semibold mb-2 text-blue-700">Buy Coins</h3>
+  {% if request_status == 'pending' %}
+    <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded mb-2">Your request to buy {{ request_amount }} coins is awaiting admin approval.</div>
+  {% elif request_status == 'approved' %}
+    <div class="bg-green-100 text-green-700 px-4 py-2 rounded mb-2">Your purchase of {{ request_amount }} coins has been approved and credited to your account!</div>
+  {% endif %}
+  <div id="buy-success-message" style="display:none" class="bg-green-100 text-green-700 px-4 py-2 rounded mb-2"></div>
+  <form id="buy-coins-form" class="mb-4" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="buy_coins" value="1">
+    <label class="block mb-2">Amount</label>
+    <input type="number" min="1" name="buy_amount" id="buy_amount" class="w-full border rounded px-3 py-2 mb-2" placeholder="Enter amount">
+    <div class="text-xs text-gray-500 mb-2">1 coin ≈ 0.001 BNB</div>
+    <div id="bnb-equivalent" class="text-xs text-blue-600 mb-2"></div>
+    <button type="button" id="buyCoinsBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">Buy Coins</button>
+  </form>
+
+  <!-- Modal -->
+  <div id="buyModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" style="display:none;">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative">
+      <button id="closeBuyModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700">&times;</button>
+      <h4 class="text-lg font-semibold mb-2 text-blue-700">Transfer BNB to Buy Coins</h4>
+      <div class="mb-2">
+        <span class="font-semibold">Wallet Address:</span>
+        <span id="paymentWallet" class="font-mono select-all">bnb1examplewalletaddress1234567890</span>
+      </div>
+      <div class="mb-2">
+        <span class="font-semibold">Amount to Send:</span>
+        <span id="bnbAmount" class="font-mono"></span> BNB
+      </div>
+      <div class="mb-4 flex flex-col items-center">
+        <img src="/static/img/bnb_qr.png" alt="BNB QR Code" class="w-32 h-32 object-contain" />
+        <div class="text-xs text-gray-500 mt-2">Scan QR to pay</div>
+      </div>
+      <button id="transferredBtn" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">Transferred</button>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmationModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" style="display:none;">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full relative">
+      <h4 class="text-lg font-semibold mb-4 text-blue-700">Awaiting Confirmation</h4>
+      <p class="mb-4">Your coins will be credited once the transfer is confirmed. This may take a few minutes.</p>
+      <button id="closeConfirmationModal" class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">OK</button>
+    </div>
+  </div>
+
+  <hr class="my-6">
+  <h3 class="text-lg font-semibold mb-2 text-blue-700">Transaction History</h3>
+  <div class="overflow-x-auto mb-4">
+    <table class="min-w-full text-xs text-left border">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="py-2 px-2">Type</th>
+          <th class="py-2 px-2">Amount</th>
+          <th class="py-2 px-2">Points</th>
+          <th class="py-2 px-2">Coins</th>
+          <th class="py-2 px-2">Date</th>
+          <th class="py-2 px-2">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr class="border-t">
+          <td class="py-1 px-2">{{ tx.get_type_display }}</td>
+          <td class="py-1 px-2">{{ tx.amount }}</td>
+          <td class="py-1 px-2">{{ tx.points }}</td>
+          <td class="py-1 px-2">{{ tx.coins }}</td>
+          <td class="py-1 px-2">{{ tx.created_at|date:'Y-m-d H:i' }}</td>
+          <td class="py-1 px-2">{{ tx.description }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center py-2 text-gray-400">No transactions yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="text-lg font-semibold mb-2 text-purple-700">Withdrawal History</h3>
+  <div class="overflow-x-auto mb-4">
+    <table class="min-w-full text-xs text-left border">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="py-2 px-2">Amount</th>
+          <th class="py-2 px-2">Wallet Address</th>
+          <th class="py-2 px-2">Status</th>
+          <th class="py-2 px-2">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for wd in withdrawals %}
+        <tr class="border-t">
+          <td class="py-1 px-2">{{ wd.amount }}</td>
+          <td class="py-1 px-2">{{ wd.wallet_address|default:'-' }}</td>
+          <td class="py-1 px-2">
+            {% if wd.status == 'pending' %}
+              <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Pending</span>
+            {% elif wd.status == 'approved' %}
+              <span class="bg-green-100 text-green-700 px-2 py-1 rounded">Approved</span>
+            {% elif wd.status == 'declined' %}
+              <span class="bg-red-100 text-red-700 px-2 py-1 rounded">Declined</span>
+            {% else %}
+              {{ wd.status }}
+            {% endif %}
+          </td>
+          <td class="py-1 px-2">{{ wd.created_at|date:'Y-m-d H:i' }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center py-2 text-gray-400">No withdrawals yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Withdraw modal logic
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const withdrawModal = document.getElementById('withdrawModal');
+    const closeWithdrawModal = document.getElementById('closeWithdrawModal');
+    if (withdrawBtn) {
+      withdrawBtn.onclick = function() {
+        withdrawModal.style.display = 'flex';
+      }
+    }
+    if (closeWithdrawModal) {
+      closeWithdrawModal.onclick = function() {
+        withdrawModal.style.display = 'none';
+      }
+    }
+    // Optional: close modal on outside click
+    window.onclick = function(event) {
+      if (event.target == withdrawModal) {
+        withdrawModal.style.display = 'none';
+      }
+    }
+
+    try {
+      document.getElementById('connectWallet').onclick = async function() {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const address = accounts[0];
+          document.querySelector('input[name="wallet_address"]').value = address;
+        } catch (err) {
+          alert('Wallet connection failed.');
+        }
+      } else {
+        alert('MetaMask not detected.');
+      }
+    }
+
+    // Buy coins modal logic
+    const buyModal = document.getElementById('buyModal');
+    const closeBuyModal = document.getElementById('closeBuyModal');
+    const transferredBtn = document.getElementById('transferredBtn');
+    const confirmationModal = document.getElementById('confirmationModal');
+    const closeConfirmationModal = document.getElementById('closeConfirmationModal');
+    const buyAmountInput = document.getElementById('buy_amount');
+    const paymentWallet = document.getElementById('paymentWallet');
+    const bnbAmount = document.getElementById('bnbAmount');
+    const bnbEquivalentDiv = document.getElementById('bnb-equivalent');
+    const buyCoinsBtn = document.getElementById('buyCoinsBtn');
+
+    const WALLET_ADDRESS = 'bnb1examplewalletaddress1234567890';
+
+    function showBuyModal(coins) {
+      paymentWallet.textContent = WALLET_ADDRESS;
+      const bnb = (coins * 0.001).toFixed(6);
+      bnbAmount.textContent = bnb;
+      buyModal.style.display = 'flex';
+    }
+
+    function updateBNBEquivalent() {
+      const coins = parseInt(buyAmountInput.value);
+      if (!coins || coins < 1) {
+        bnbEquivalentDiv.textContent = '';
+        return;
+      }
+      const bnb = (coins * 0.001).toFixed(6);
+      bnbEquivalentDiv.textContent = `≈ ${bnb} BNB`;
+    }
+
+    buyAmountInput.addEventListener('input', updateBNBEquivalent);
+    updateBNBEquivalent();
+
+    buyCoinsBtn.onclick = function() {
+      const coins = parseInt(buyAmountInput.value);
+      if (!coins || coins < 1) {
+        alert('Enter a valid amount.');
+        return;
+      }
+      showBuyModal(coins);
+    };
+
+    // When 'Transferred' is clicked, show confirmation modal
+    transferredBtn.onclick = function() {
+      buyModal.style.display = 'none';
+      confirmationModal.style.display = 'flex';
+    };
+    // When 'OK' is clicked, submit the form
+    closeConfirmationModal.onclick = function() {
+      confirmationModal.style.display = 'none';
+      document.getElementById('buy-coins-form').submit();
+    };
+
+    closeBuyModal.onclick = function() {
+      buyModal.style.display = 'none';
+    };
+    } catch (e) {
+      console.error('Error in wallet modal script:', e);
+    }
+  });
+  </script>
+</div>
+{% endblock %}

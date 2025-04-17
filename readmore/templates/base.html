@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Read More</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-blue-50 min-h-screen">
+  {% if not hide_nav %}
+  <!-- Blue Header -->
+  <header class="bg-blue-600 shadow p-4 flex justify-center items-center rounded-b-xl">
+    <a href="/dashboard/" class="text-2xl font-bold text-white tracking-wide">Read More</a>
+  </header>
+  {% endif %}
+  <main class="pb-24">
+    {% block content %}{% endblock %}
+  </main>
+  {% if not hide_nav %}
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 w-full bg-white shadow-lg flex justify-around items-center h-16 z-50 rounded-t-xl border-t border-gray-200">
+    <a href="/dashboard/" class="flex flex-col items-center {% if request.path == '/dashboard/' %}text-blue-600{% else %}text-gray-400{% endif %}">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M3 12l9-9 9 9"/></svg>
+      <span class="text-xs mt-1">Home</span>
+    </a>
+    <a href="/news/" class="flex flex-col items-center {% if request.path|slice:":6" == '/news/' %}text-blue-600{% else %}text-gray-400{% endif %}">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span class="text-xs mt-1">News</span>
+    </a>
+    <a href="/manual-tasks/" class="flex flex-col items-center {% if '/manual-tasks' in request.path %}text-blue-600{% else %}text-gray-400{% endif %}">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>
+      <span class="text-xs mt-1">Tasks</span>
+    </a>
+    <a href="/wallet/" class="flex flex-col items-center {% if '/wallet' in request.path %}text-blue-600{% else %}text-gray-400{% endif %}">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="5"/><circle cx="17" cy="12" r="2"/></svg>
+      <span class="text-xs mt-1">Wallet</span>
+    </a>
+    <a href="/profile/" class="flex flex-col items-center {% if '/profile' in request.path %}text-blue-600{% else %}text-gray-400{% endif %}">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg>
+      <span class="text-xs mt-1">Profile</span>
+    </a>
+  </nav>
+  {% endif %}
+  <style>
+    body { background: #F5F7FA; }
+    .rounded-b-xl { border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; }
+    .rounded-t-xl { border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
+    .card { box-shadow: 0px 2px 4px rgba(0,0,0,0.07); border-radius: 1rem; }
+  </style>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto mt-6">
+  <h2 class="text-2xl font-bold mb-4 text-blue-700">News Feed</h2>
+  <div class="space-y-4">
+    {% for article in articles %}
+      <div class="bg-white card p-5 rounded-xl shadow flex flex-col relative">
+        <div class="flex items-center justify-between">
+          <a href="/news/article/{{ article.id }}/" class="text-blue-700 font-bold text-lg hover:underline">{{ article.title }}</a>
+          {% if article.id in read_ids %}
+            <span class="ml-2 bg-gray-100 text-gray-400 px-3 py-1 rounded-full text-xs font-semibold">Read</span>
+          {% else %}
+            <span class="ml-2 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-semibold">+100 pts</span>
+          {% endif %}
+        </div>
+        <p class="text-xs text-gray-400 mt-1">{{ article.source }} &middot; {{ article.published_at|timesince }} ago</p>
+        <div class="my-2">
+          <p class="text-gray-700 text-sm">{{ article.summary|truncatechars:80 }}</p>
+        </div>
+        <a href="/news/article/{{ article.id }}/" class="mt-2 inline-block bg-blue-600 text-white px-4 py-1 rounded-full text-xs">Read More</a>
+      </div>
+    {% empty %}
+      <p>No news found. Please check back later.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
