@@ -5,3 +5,4 @@ redis
 tailwindcss
 django-tailwind
 web3
+gunicorn
