@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Webview App</title>
+  <style>
+    body { margin: 0; padding: 0; width: 400px; height: 600px; }
+    #controls { padding: 8px; background: #f1f1f1; }
+    #appFrame { width: 100%; height: 540px; border: none; }
+    input[type=url] { width: 75%; }
+    button { margin-left: 5px; }
+  </style>
+</head>
+<body>
+  <div id="preloader" style="display:flex;justify-content:center;align-items:center;height:540px;">
+    <img src="https://media.tenor.com/3vL2yWvTo2cAAAAC/%D0%BA%D0%BD%D0%B8%D0%B3%D0%B0-%D0%BE%D1%82%D0%BA%D1%80%D1%8B%D1%82%D1%8C%D0%BA%D0%BD%D0%B8%D0%B3%D1%83-book.gif" alt="Loading..." style="max-width:90%;max-height:90%;border-radius:10px;"/>
+  </div>
+  <div id="errorMsg" style="display:none; color:red; padding:12px; text-align:center;"></div>
+  <iframe id="appFrame" style="display:none;" src="about:blank"></iframe>
+  <script src="popup.js"></script>
+</body>
+</html>

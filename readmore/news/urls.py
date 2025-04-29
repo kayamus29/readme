@@ -1,4 +1,5 @@
 from django.urls import path
+from news.api_auth import ExtensionTokenObtainPairView
 from . import views
 from django.contrib.auth import views as auth_views
 
@@ -7,6 +8,7 @@ from . import views_wallet
 from . import views_news
 
 urlpatterns = [
+    path('api/extension/token/', ExtensionTokenObtainPairView.as_view(), name='extension_token_obtain_pair'),
     path('', views.home, name='home'),
     path('signup/', views.signup, name='signup'),
     path('login/', views.CustomLoginView.as_view(template_name='registration/login.html'), name='login'),

@@ -6,3 +6,5 @@ tailwindcss
 django-tailwind
 web3
 gunicorn
+djangorestframework
+djangorestframework-simplejwt

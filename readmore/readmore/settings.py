@@ -25,11 +25,12 @@ SECRET_KEY = 'django-insecure-v1g0py4f2xypa$j6loa)ale^jix(-5lyx8u$z9-bk#j8k$q#m7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.200.83', 'dfb2-160-119-124-4.ngrok-free.app', 'dfb2-160-119-124-4.ngrok-free.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.200.83', '1de7-160-119-124-4.ngrok-free.app', 'dfb2-160-119-124-4.ngrok-free.app']
 
 
 CSRF_TRUSTED_ORIGINS = [
     'https://dfb2-160-119-124-4.ngrok-free.app',
+    'https://1de7-160-119-124-4.ngrok-free.app',
 ]
 
 LOGOUT_REDIRECT_URL = '/login/'
@@ -39,6 +40,8 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'rest_framework',
+    'rest_framework_simplejwt',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -153,12 +156,25 @@ TEMPLATES[0]['DIRS'] = [template_dir]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Allow embedding in iframes ONLY for Chrome extension in production
+CHROME_EXTENSION_ID = 'dlfemnmfnfbfhplkmbcnigjdbeilkfac'  # <-- Replace with your real extension ID
+X_FRAME_OPTIONS = 'ALLOW'  # Default deny
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+MIDDLEWARE.insert(0, 'readmore.middleware.AllowExtensionIframeMiddleware')
+
 # Email configuration
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For dev: prints emails to console
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your_email@gmail.com'        # <-- CHANGE THIS
-EMAIL_HOST_PASSWORD = 'your_app_password_here'  # <-- CHANGE THIS (App Password, not your regular password)
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = 'smtp.gmail.com'
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = 'your_email@gmail.com'        # <-- CHANGE THIS
+#EMAIL_HOST_PASSWORD = 'your_app_password_here'  # <-- CHANGE THIS (App Password, not your regular password)
+#DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
